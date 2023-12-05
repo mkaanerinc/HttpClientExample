@@ -20,12 +20,12 @@ namespace HttpClientExample.Web.Controllers
         public IActionResult Index()
         {
             HttpResponseMessage response = _httpClient.GetAsync(_httpClient.BaseAddress + "/brands/getall").Result;
-            BrandListResponseModel brandListResponseModel = new BrandListResponseModel(); 
+            ListResponseModel<BrandViewModel> brandListResponseModel = new ListResponseModel<BrandViewModel>(); 
 
             if (response.IsSuccessStatusCode)
             {
                 string data = response.Content.ReadAsStringAsync().Result;
-                brandListResponseModel = JsonConvert.DeserializeObject<BrandListResponseModel>(data);
+                brandListResponseModel = JsonConvert.DeserializeObject<ListResponseModel<BrandViewModel>>(data);
             }
 
             return View(brandListResponseModel.Data);
