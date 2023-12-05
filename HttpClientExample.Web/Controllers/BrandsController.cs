@@ -1,4 +1,5 @@
 ﻿using HttpClientExample.Web.Models;
+using HttpClientExample.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using System.Text;
@@ -7,28 +8,20 @@ namespace HttpClientExample.Web.Controllers
 {
     public class BrandsController : Controller
     {
-        Uri baseAddress = new Uri("http://localhost:5131/api");
-        private readonly HttpClient _httpClient;
 
-        public BrandsController()
+        private readonly BrandService _brandService;
+
+        public BrandsController(BrandService brandService)
         {
-            _httpClient = new HttpClient();
-            _httpClient.BaseAddress = baseAddress;
+            _brandService = brandService;
         }
 
         [HttpGet]
         public IActionResult Index()
         {
-            HttpResponseMessage response = _httpClient.GetAsync(_httpClient.BaseAddress + "/brands/getall").Result;
-            ListResponseModel<BrandViewModel> brandListResponseModel = new ListResponseModel<BrandViewModel>(); 
+            var result = _brandService.GetAll();
 
-            if (response.IsSuccessStatusCode)
-            {
-                string data = response.Content.ReadAsStringAsync().Result;
-                brandListResponseModel = JsonConvert.DeserializeObject<ListResponseModel<BrandViewModel>>(data);
-            }
-
-            return View(brandListResponseModel.Data);
+            return View(result.Data);
         }
 
         [HttpGet]
@@ -40,23 +33,15 @@ namespace HttpClientExample.Web.Controllers
         [HttpPost]
         public IActionResult Create(BrandViewModel brandViewModel)
         {
-            try
-            {
-                string data = JsonConvert.SerializeObject(brandViewModel);
-                StringContent content = new StringContent(data, Encoding.UTF8, "application/json");
+            var result = _brandService.Add(brandViewModel);
 
-                HttpResponseMessage response = _httpClient.PostAsync(_httpClient.BaseAddress + "/brands/add", content).Result;
-
-                if (response.IsSuccessStatusCode)
-                {
-                    return RedirectToAction("Index", "Brands");
-                }
-            }
-            catch (Exception)
+            if (result)
             {
-                return View();
+                return RedirectToAction("Index", "Brands");
             }
+            
             return View();
+
         }
     }
 }
